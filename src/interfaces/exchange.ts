@@ -1,4 +1,6 @@
+import { Trade } from '../models/Trade';
+
 export interface Exchange {
-    fetchTradeHistory(pair: string): Promise<any>;
-    calculateCumulativeDelta(trades: any[]): number;
+    fetchTradeHistory(pair: string): Promise<Trade[]>;
+    calculateCumulativeDelta(trades: Trade[]): number;
 }

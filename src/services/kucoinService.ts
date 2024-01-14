@@ -1,8 +1,9 @@
 // Function to fetch trade history from Kucoin's API
 import { Exchange } from '../interfaces/exchange';
+import { Trade } from '../models/Trade';
 
 export class KucoinService implements Exchange {
-    async fetchTradeHistory(pair: string): Promise<any> {
+    async fetchTradeHistory(pair: string): Promise<Trade[]> {
         // Kucoin-specific fetch logic
         try {
             const fetchURL = `https://api.kucoin.com/api/v1/market/histories?symbol=${pair}`;
@@ -22,28 +23,28 @@ export class KucoinService implements Exchange {
                 throw new Error(`Error fetching data: ${response.status}`);
             }
 
-            // Handle different response types (e.g., JSON or text)
-            const contentType = response.headers.get('content-type');
-            if (contentType && contentType.includes('application/json')) {
-                return await response.json();
-            } else {
-                return await response.text();
-            }
+            const kucoinResponse = await response.json();
+            // console.log("HEY data = ", data)
+            return kucoinResponse.data.map((item: any) => new Trade(
+                parseFloat(item.size),
+                item.side,
+                parseFloat(item.price),
+                item.time
+            ));
         } catch (error) {
             console.error('Error fetching trade history:', error);
             throw error;
         }
     }
 
-    calculateCumulativeDelta(trades: any[]): number {
+    calculateCumulativeDelta(trades: Trade[]): number {
         // Kucoin-specific delta calculation
         let delta = 0;
         trades.forEach(trade => {
-            const tradeSize = parseFloat(trade.size);
             if (trade.side === 'buy') {
-                delta += tradeSize;
+                delta += trade.size;
             } else if (trade.side === 'sell') {
-                delta -= tradeSize;
+                delta -= trade.size;
             }
         });
         return delta;

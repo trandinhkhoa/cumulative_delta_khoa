@@ -1,5 +1,6 @@
 // import { KucoinService, calculateCumulativeDelta, fetchTradeHistory } from '../../src/services/kucoinService';
 
+import { Trade } from "../../src/models/Trade";
 import { KucoinService } from "../../src/services/kucoinService";
 
 describe('calculateCumulativeDelta', () => {
@@ -9,10 +10,10 @@ describe('calculateCumulativeDelta', () => {
     })
     it('correctly calculates the delta', () => {
         const trades = [
-            { size: '2', side: 'buy' },
-            { size: '5', side: 'sell' },
-            { size: '7', side: 'buy' }
-        ];
+            { size: 2, side: 'buy' },
+            { size: 5, side: 'sell' },
+            { size: 7, side: 'buy' }
+        ] as unknown as Trade[];
         expect(kucoinService.calculateCumulativeDelta(trades)).toBe(4);
     });
 });
@@ -86,6 +87,10 @@ describe('fetchTradeHistory', () => {
 
         const response = await kucoinService.fetchTradeHistory('ETH-USDT');
 
-        expect(response).toEqual(jsonResponseBody);
+        const expectedResponse = [
+            new Trade(1, 'buy', 2002, 1705264074092000000),
+            new Trade(2, 'sell', 2001, 1705264074111000000)
+        ];
+        expect(response).toEqual(expectedResponse);
     });
 });

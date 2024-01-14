@@ -3,6 +3,7 @@ import { KucoinService } from '../services/kucoinService';
 import { isValidTradingPair } from '../utils/validateTradingPair';
 import { Exchange } from '../interfaces/exchange';
 import { SUPPORTED_EXCHANGES } from '../constants/constants';
+import { Trade } from '../models/Trade';
 
 class ExchangeFactory {
     static getExchangeService(exchangeName: string): Exchange {
@@ -27,10 +28,10 @@ export const getCumulativeDelta = async (req: Request, res: Response) => {
         let cumulativeDeltaAcrossAllExchange = 0
         for (const exchange of SUPPORTED_EXCHANGES) {
             const exchangeService = ExchangeFactory.getExchangeService(exchange);
-            const tradeHistoryResponse = await exchangeService.fetchTradeHistory(tradingPair);
-            cumulativeDeltaAcrossAllExchange += exchangeService.calculateCumulativeDelta(tradeHistoryResponse.data);
-            res.status(200).json({ cumulativeDelta: cumulativeDeltaAcrossAllExchange });
+            const trades: Trade[] = await exchangeService.fetchTradeHistory(tradingPair);
+            cumulativeDeltaAcrossAllExchange += exchangeService.calculateCumulativeDelta(trades);
         }
+        res.status(200).json({ cumulativeDelta: cumulativeDeltaAcrossAllExchange });
     } catch (error) {
         res.status(500).json({ error: 'Error fetching data: ' + error });
     }
