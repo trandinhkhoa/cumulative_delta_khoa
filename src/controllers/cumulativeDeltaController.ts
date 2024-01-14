@@ -1,9 +1,14 @@
 import { Request, Response } from 'express';
 import { fetchTradeHistory, calculateCumulativeDelta } from '../services/kucoinService';
+import { isValidTradingPair } from '../utils/validateTradingPair';
 
-// This function will handle the logic for calculating cumulative delta
 export const getCumulativeDelta = async (req: Request, res: Response) => {
     const tradingPair = req.params.pair;
+
+    if (!isValidTradingPair(tradingPair)) {
+        return res.status(400).json({ error: `Trading pair ${tradingPair} is not supported` });
+    }
+
     try {
         const tradeHistoryResponse = await fetchTradeHistory(tradingPair);
         const delta = calculateCumulativeDelta(tradeHistoryResponse.data);

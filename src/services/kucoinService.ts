@@ -1,11 +1,10 @@
-// kucoinService.ts
 // Function to fetch trade history from Kucoin's API
 export const fetchTradeHistory = async (pair: string) => {
     try {
         const fetchURL = `https://api.kucoin.com/api/v1/market/histories?symbol=${pair}`;
         console.log('Fetching from ... ', fetchURL);
 
-        // Set a timeout for the fetch request (e.g., 10 seconds)
+        // Set a timeout for the fetch request (e.g., 4 seconds)
         const timeoutPromise = new Promise<Response>((_, reject) =>
             setTimeout(() => reject(new Error('Request timed out')), 4000)
         );
