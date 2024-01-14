@@ -7,7 +7,7 @@ export const fetchTradeHistory = async (pair: string) => {
 
         // Set a timeout for the fetch request (e.g., 10 seconds)
         const timeoutPromise = new Promise<Response>((_, reject) =>
-            setTimeout(() => reject(new Error('Request timed out')), 10000)
+            setTimeout(() => reject(new Error('Request timed out')), 4000)
         );
 
         const response: Response = await Promise.race([
