@@ -1,13 +1,19 @@
-import { calculateCumulativeDelta, fetchTradeHistory } from '../../src/services/kucoinService';
+// import { KucoinService, calculateCumulativeDelta, fetchTradeHistory } from '../../src/services/kucoinService';
+
+import { KucoinService } from "../../src/services/kucoinService";
 
 describe('calculateCumulativeDelta', () => {
+    let kucoinService: KucoinService
+    beforeAll(() => {
+        kucoinService = new KucoinService();
+    })
     it('correctly calculates the delta', () => {
         const trades = [
             { size: '2', side: 'buy' },
             { size: '5', side: 'sell' },
             { size: '7', side: 'buy' }
         ];
-        expect(calculateCumulativeDelta(trades)).toBe(4);
+        expect(kucoinService.calculateCumulativeDelta(trades)).toBe(4);
     });
 });
 
@@ -39,8 +45,10 @@ function mockFetchOk(jsonResponseBody: any) {
 }
 
 describe('fetchTradeHistory', () => {
-    beforeEach(() => {
-    });
+    let kucoinService: KucoinService
+    beforeAll(() => {
+        kucoinService = new KucoinService();
+    })
 
     // Cleanup the mock after each test
     afterEach(() => {
@@ -50,7 +58,7 @@ describe('fetchTradeHistory', () => {
     it('throws an error if the request times out', async () => {
         mockFetchTimeout(); // Call this before your tests that use fetch
         // Simulate a delayed response
-        await expect(fetchTradeHistory('ETH-USDT')).rejects.toThrow('Request timed out');
+        await expect(kucoinService.fetchTradeHistory('ETH-USDT')).rejects.toThrow('Request timed out');
     });
 
     it('returns a successful response', async () => {
@@ -76,7 +84,7 @@ describe('fetchTradeHistory', () => {
 
         mockFetchOk(jsonResponseBody);
 
-        const response = await fetchTradeHistory('ETH-USDT');
+        const response = await kucoinService.fetchTradeHistory('ETH-USDT');
 
         expect(response).toEqual(jsonResponseBody);
     });
