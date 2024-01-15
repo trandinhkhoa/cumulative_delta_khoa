@@ -102,10 +102,6 @@ npm run test:coverage
     - There is also the option of running in the background a job that call the KuCoin Get Trade Histories within very short intervals repeatedly, then using the timestamp to stitch the results together, building a database of this info, and calculating the cumulative data from there. But there are several problems:
         - There is no telling how short the intervals should be. It depends on the amount of trade per seconds occured on KuCoin. Popular pair like BTC-USDT has easily much more than 1000s trade per seconds, so calling KuCoin Get Trade Histories API every seconds will still resulting in missing at least 1000-100 = 900 per second for example.
     - Furthermore, the assignment asked me to "fetch public trades history", which what the KuCoin API above was about, so I used it
-        - If I have the chance to discuss and clarify more about the requirements, I would propose something like:
-            - Open a websocket to this endpoint https://www.kucoin.com/docs/websocket/spot-trading/public-channels/symbol-snapshot. That way, I can accumulate the the `buy` and `sell` quantity for a given pair every 2 seconds. Overtime, I will be able to accumulate a database of this info, and will be able to calculate the cumulative delta over the past several hours, days, weeks, etc.
-            - Another idea is to open a websocket to https://www.kucoin.com/docs/websocket/spot-trading/public-channels/match-execution-data.
-
     - This application only take data from Kucoin Spot Trading. Because:
         - It's simpler,
         - It represents the actual buying and selling of the asset
@@ -115,3 +111,14 @@ npm run test:coverage
         - Because `controllers` is already using only `Exchange`'s methods
         - The assignment did not ask for cumulative delta across all exchange. But I did it, with just 1 exchange, it does not make any difference anyway. It is only to demonstrate how easy it would be to add a new exchange as described just now, and the cumulative delta will automatically still the sum across all exchange.
         - While functionally the same, different exchanges might still have slightly different format for their response. So I created a `Trade` class to standardize the trade data (e.g size, buyer or seller, etc) so that the code is not coupled with the choice of any exchange.
+- **Future Improvement**
+    - If I have the chance to discuss and clarify more about the requirements, I would propose something like:
+        - Another idea is to open a websocket to https://www.kucoin.com/docs/websocket/spot-trading/public-channels/match-execution-data. Overtime, I will be able to accumulate a database of this info, and will be able to calculate the cumulative delta over the past several hours, days, weeks, etc.
+            - Pros:
+                - able to create our databases of all executed trades, allowing a richer set of features in the futures: e.g. calculate cumulative delta over a specific timeframe.
+            - Cons:
+                - storing individual trades for frequently traded pairs means storing a lot of data
+                    - calculating the delta over a specific timeframe over this huge dataset might be a challenge
+                        - a time-series database like `InfluxDB` might be useful
+
+        - Another idea is to open a websocket to this endpoint https://www.kucoin.com/docs/websocket/spot-trading/public-channels/symbol-snapshot. That way, I can accumulate the the `buy` and `sell` quantity for a given pair every 2 seconds. Then, when the user use my API to get the cumulative delta, I am not limited to the last 100 trades for a specific pair, but instead I will be able to return the cumulative delta since the start of the our application.

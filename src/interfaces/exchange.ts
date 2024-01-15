@@ -1,4 +1,4 @@
-import { Trade } from '../models/Trade';
+import { Trade } from '../models/trade';
 
 export interface Exchange {
     fetchTradeHistory(pair: string): Promise<Trade[]>;

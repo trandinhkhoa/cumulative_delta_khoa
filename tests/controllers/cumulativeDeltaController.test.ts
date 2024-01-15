@@ -2,7 +2,7 @@ import { Request, Response } from 'express';
 import { isValidTradingPair } from '../../src/utils/validateTradingPair';
 import { getCumulativeDelta } from '../../src/controllers/cumulativeDeltaController';
 import { KucoinService } from '../../src/services/kucoinService';
-import { Trade } from '../../src/models/Trade';
+import { Trade } from '../../src/models/trade';
 
 describe('getCumulativeDelta Controller', () => {
     afterEach(() => {

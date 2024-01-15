@@ -1,7 +1,7 @@
 // Function to fetch trade history from Kucoin's API
 import { error } from 'console';
 import { Exchange } from '../interfaces/exchange';
-import { Trade } from '../models/Trade';
+import { Trade } from '../models/trade';
 
 export class KucoinService implements Exchange {
     async fetchTradeHistory(pair: string): Promise<Trade[]> {

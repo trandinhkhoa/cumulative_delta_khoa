@@ -1,6 +1,6 @@
 // import { KucoinService, calculateCumulativeDelta, fetchTradeHistory } from '../../src/services/kucoinService';
 
-import { Trade } from "../../src/models/Trade";
+import { Trade } from "../../src/models/trade";
 import { KucoinService } from "../../src/services/kucoinService";
 
 describe('calculateCumulativeDelta', () => {

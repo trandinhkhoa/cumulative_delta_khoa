@@ -3,7 +3,7 @@ import { KucoinService } from '../services/kucoinService';
 import { isValidTradingPair } from '../utils/validateTradingPair';
 import { Exchange } from '../interfaces/exchange';
 import { SUPPORTED_EXCHANGES } from '../constants/constants';
-import { Trade } from '../models/Trade';
+import { Trade } from '../models/trade';
 
 class ExchangeFactory {
     static getExchangeService(exchangeName: string): Exchange {
