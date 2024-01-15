@@ -24,7 +24,6 @@ export class KucoinService implements Exchange {
             }
 
             const kucoinResponse = await response.json();
-            // console.log("HEY data = ", data)
             return kucoinResponse.data.map((item: any) => new Trade(
                 parseFloat(item.size),
                 item.side,
