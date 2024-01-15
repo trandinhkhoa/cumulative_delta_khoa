@@ -18,33 +18,6 @@ describe('calculateCumulativeDelta', () => {
     });
 });
 
-// mock the built-in fetch API of node
-function mockFetchTimeout() {
-    jest.spyOn(global, 'fetch').mockImplementation(() => {
-        return new Promise((resolve, reject) => {
-            setTimeout(() => {
-                reject(new Error('Timeout error'));
-            }, 4500);
-        });
-    });
-}
-
-// mock the built-in fetch API of node
-function mockFetchOk(jsonResponseBody: any) {
-    jest.spyOn(global, 'fetch').mockImplementation(() => {
-        return new Promise((resolve, reject) => {
-            const exchangeResponse = new Response(JSON.stringify(jsonResponseBody), {
-                status: 200,
-                headers: {
-                  'Content-Type': 'application/json',
-                },
-            });
-
-            resolve(exchangeResponse)
-        })
-    });
-}
-
 describe('fetchTradeHistory', () => {
     let kucoinService: KucoinService
     beforeAll(() => {
@@ -57,8 +30,15 @@ describe('fetchTradeHistory', () => {
     });
 
     it('throws an error if the request times out', async () => {
-        mockFetchTimeout(); // Call this before your tests that use fetch
         // Simulate a delayed response
+        jest.spyOn(global, 'fetch').mockImplementation(() => {
+            return new Promise((resolve, reject) => {
+                setTimeout(() => {
+                    reject(new Error('Timeout error'));
+                }, 4500);
+            });
+        });
+
         await expect(kucoinService.fetchTradeHistory('ETH-USDT')).rejects.toThrow('Request timed out');
     });
 
@@ -83,7 +63,19 @@ describe('fetchTradeHistory', () => {
             ],
         };
 
-        mockFetchOk(jsonResponseBody);
+        // Simulate a 200 response
+        jest.spyOn(global, 'fetch').mockImplementation(() => {
+            return new Promise((resolve, reject) => {
+                const exchangeResponse = new Response(JSON.stringify(jsonResponseBody), {
+                    status: 200,
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                });
+
+                resolve(exchangeResponse)
+            })
+        });
 
         const response = await kucoinService.fetchTradeHistory('ETH-USDT');
 
@@ -92,5 +84,28 @@ describe('fetchTradeHistory', () => {
             new Trade(2, 'sell', 2001, 1705264074111000000)
         ];
         expect(response).toEqual(expectedResponse);
+    });
+
+    it('returns error if exchange return error', async () => {
+        const jsonResponseBody = {
+            "msg": "Bad Request",
+            "code": "400000"
+        };
+
+        // Simulate a 4xx/5xx response
+        jest.spyOn(global, 'fetch').mockImplementation(() => {
+            return new Promise((resolve, reject) => {
+                const exchangeResponse = new Response(JSON.stringify(jsonResponseBody), {
+                    status: 400,
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                });
+
+                resolve(exchangeResponse)
+            })
+        });
+
+        await expect(kucoinService.fetchTradeHistory('ETH-USDT')).rejects.toThrow('Error fetching data: 400');
     });
 });

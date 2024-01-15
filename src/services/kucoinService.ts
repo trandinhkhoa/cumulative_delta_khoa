@@ -1,4 +1,5 @@
 // Function to fetch trade history from Kucoin's API
+import { error } from 'console';
 import { Exchange } from '../interfaces/exchange';
 import { Trade } from '../models/Trade';
 
@@ -20,7 +21,9 @@ export class KucoinService implements Exchange {
             ]);
 
             if (!response.ok) {
-                throw new Error(`Error fetching data: ${response.status}`);
+                const errorMsg = `Error fetching data: ${response.status}`;
+                console.error(errorMsg)
+                throw new Error(errorMsg);
             }
 
             const kucoinResponse = await response.json();
@@ -37,7 +40,6 @@ export class KucoinService implements Exchange {
     }
 
     calculateCumulativeDelta(trades: Trade[]): number {
-        // Kucoin-specific delta calculation
         let delta = 0;
         trades.forEach(trade => {
             if (trade.side === 'buy') {

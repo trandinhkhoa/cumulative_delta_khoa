@@ -42,6 +42,7 @@ npm install
 ```
 npm start
 ```
+The application will launch at port 3000
 ## Try it
 ```
 curl -v "http://localhost:3000/api/cumulative-delta/ETH-USDT"

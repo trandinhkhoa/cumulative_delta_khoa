@@ -33,7 +33,8 @@ export const getCumulativeDelta = async (req: Request, res: Response) => {
         }
         res.status(200).json({ cumulativeDelta: cumulativeDeltaAcrossAllExchange });
     } catch (error) {
-        res.status(500).json({ error: 'Error fetching data: ' + error });
+        console.error(error)
+        res.status(500).json({error: 'Error getting cumulative delta'});
     }
 };
 
