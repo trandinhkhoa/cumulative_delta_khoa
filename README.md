@@ -92,6 +92,39 @@ npm run test:coverage
                     }
                 ```
 
+### 2. Retrieves the cumulative delta for the specified pair since the time we start the applciation
+
+- **HTTP Method**: GET
+- **Path**: `/api/cumulative-delta-real/:pair`
+    - Path Parameters:
+        - pair: String - The trading pair for which the cumulative delta is calculated (only `ETH-USDT` supported for now).
+- **Response**:
+    - Successful Response:
+        - 200 OK
+            - Body:
+                ```json
+                {
+                    "cumulativeDelta": number
+                }
+                ```
+    - Error Responses:
+        - 400 Bad Request
+            - Occurs when an unsupported trading pair is requested.
+            - Body:
+                ```json
+                {
+                    "error": "Trading pair {pair} is not supported"
+                }
+                ```
+        - 500 Internal Server Error
+            - General server error (e.g., issues with fetching data from the exchange).
+            - Body:
+                ```json
+                    {
+                        "error": "Error fetching data: [error details]"
+                    }
+                ```
+
 # Remarks:
 - **Functional**:
     - This application only return the cumulative delta for the last 100 trades
@@ -120,5 +153,12 @@ npm run test:coverage
                 - storing individual trades for frequently traded pairs means storing a lot of data
                     - calculating the delta over a specific timeframe over this huge dataset might be a challenge
                         - a time-series database like `InfluxDB` might be useful
+                - in the future we will add more exchanges and pair, listening for every trades for each of them will put a huge load on our application
+            - GET `/api/cumulative-delta-real/:pair` implement this solution. But because of the cons and uncertainty above, I did not add much tests nor structured the code around this solution.
 
         - Another idea is to open a websocket to this endpoint https://www.kucoin.com/docs/websocket/spot-trading/public-channels/symbol-snapshot. That way, I can accumulate the the `buy` and `sell` quantity for a given pair every 2 seconds. Then, when the user use my API to get the cumulative delta, I am not limited to the last 100 trades for a specific pair, but instead I will be able to return the cumulative delta since the start of the our application.
+            - Cons:
+                - this API is for a market (e.g. BTC), not for a trading pair (e.g. BTC-USDT)
+    - Both these improvements require websocket, but KuCoin API documentation for websocket is not very clear.
+        - for example for the ping that keeps the connection alive https://www.kucoin.com/docs/websocket/basic-info/ping
+            - it's is not clear whether `id` is unique to a ping message or the identifer of the connection
