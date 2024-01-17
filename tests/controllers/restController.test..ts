@@ -1,15 +1,16 @@
 import { Request, Response } from 'express';
-import { isValidTradingPair } from '../../src/utils/validateTradingPair';
-import { getCumulativeDelta } from '../../src/controllers/cumulativeDeltaController';
-import { KucoinService } from '../../src/services/kucoinService';
+import { getCumulativeDeltaLast100 } from '../../src/controllers/restController';
+import { KucoinService } from '../../src/services/last100/kucoinService';
 import { Trade } from '../../src/models/trade';
+import { ExchangeFactory } from '../../src/controllers/restController';
 
-describe('getCumulativeDelta Controller', () => {
+
+describe('restControllerTest_getCumulativeDeltaLast100', () => {
     afterEach(() => {
         jest.restoreAllMocks()
     })
 
-    it('returns an error for unsupported trading pairs', async () => {
+    it('should return an error for unsupported trading pairs', async () => {
         const mockRequest = {
             params: { pair: 'BTC-USDT' }
         } as unknown as Request;
@@ -19,13 +20,13 @@ describe('getCumulativeDelta Controller', () => {
             json: jest.fn()
         } as unknown as Response;
 
-        await getCumulativeDelta(mockRequest, mockResponse);
+        await getCumulativeDeltaLast100(mockRequest, mockResponse);
 
         expect(mockResponse.status).toHaveBeenCalledWith(400);
         expect(mockResponse.json).toHaveBeenCalledWith({ error: 'Trading pair BTC-USDT is not supported' });
     });
 
-    it('returns 200', async () => {
+    it('should returns 200', async () => {
         // mock KucoinService
         const tradesHistory = [
             new Trade(20, 'buy', 2002, 1705264074092000000),
@@ -43,13 +44,13 @@ describe('getCumulativeDelta Controller', () => {
             json: jest.fn()
         } as unknown as Response;
 
-        await getCumulativeDelta(mockRequest, mockResponse);
+        await getCumulativeDeltaLast100(mockRequest, mockResponse);
 
         expect(mockResponse.status).toHaveBeenCalledWith(200);
         expect(mockResponse.json).toHaveBeenCalledWith({"cumulativeDelta": 10});
     });
 
-    it('returns 500', async () => {
+    it('should returns 500', async () => {
         // mock KucoinService
         jest.spyOn(KucoinService.prototype, 'fetchTradeHistory').mockRejectedValue(new Error('Error fetching data: 400'));
         jest.spyOn(KucoinService.prototype, 'calculateCumulativeDelta').mockReturnValue(10);
@@ -63,7 +64,7 @@ describe('getCumulativeDelta Controller', () => {
             json: jest.fn()
         } as unknown as Response;
 
-        await getCumulativeDelta(mockRequest, mockResponse);
+        await getCumulativeDeltaLast100(mockRequest, mockResponse);
 
         expect(mockResponse.status).toHaveBeenCalledWith(500);
         expect(mockResponse.json).toHaveBeenCalledWith({'error': 'Error getting cumulative delta'});

@@ -1,9 +1,9 @@
 // Function to fetch trade history from Kucoin's API
 import { error } from 'console';
-import { Exchange } from '../interfaces/exchange';
-import { Trade } from '../models/trade';
+import { ExchangeInterface } from '../exchangeInterfaces';
+import { Trade } from '../../models/trade';
 
-export class KucoinService implements Exchange {
+export class KucoinService implements ExchangeInterface {
     async fetchTradeHistory(pair: string): Promise<Trade[]> {
         // Kucoin-specific fetch logic
         try {
@@ -22,7 +22,7 @@ export class KucoinService implements Exchange {
 
             if (!response.ok) {
                 const errorMsg = `Error fetching data: ${response.status}`;
-                console.error(errorMsg)
+                // console.error(errorMsg)
                 throw new Error(errorMsg);
             }
 
@@ -34,7 +34,7 @@ export class KucoinService implements Exchange {
                 item.time
             ));
         } catch (error) {
-            console.error('Error fetching trade history:', error);
+            // console.error('Error fetching trade history:', error);
             throw error;
         }
     }

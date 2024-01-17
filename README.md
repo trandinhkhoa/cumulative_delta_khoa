@@ -34,6 +34,7 @@ The delivered implementation should be battle-tested!
 You should rely on the exchange API for the integration (not a third party one)
 
 # Install and Launch
+- I used `NodeJS` version 20
 ## Install
 ```
 npm install
@@ -43,18 +44,27 @@ npm install
 npm start
 ```
 The application will launch at port 3000
+
+Example output:
+
+![](screenshots/output_console.png)
 ## Try it
+- Retrieves the cumulative delta for the last 100 trades for a specified trading pair
 ```
-curl -v "http://localhost:3000/api/cumulative-delta/ETH-USDT"
+curl -v "http://localhost:3000/api/cumulative-delta-last-100/ETH-USDT"
+```
+
+Example output:
+
+![](screenshots/output_last100.png)
+
+- Retrieves the cumulative delta for the specified pair since the time we start the application
+```
+curl -v "http://localhost:3000/api/cumulative-delta-since-start/ETH-USDT"
 ```
 ## Test
 ```
 npm test
-```
-
-Run test with coverage report
-```
-npm run test:coverage
 ```
 
 # APIs
@@ -62,7 +72,7 @@ npm run test:coverage
 ### 1. Retrieves the cumulative delta for the last 100 trades for a specified trading pair
 
 - **HTTP Method**: GET
-- **Path**: `/api/cumulative-delta/:pair`
+- **Path**: `/api/cumulative-delta-last-100/:pair`
     - Path Parameters:
         - pair: String - The trading pair for which the cumulative delta is calculated (only `ETH-USDT` supported for now).
 - **Response**:
@@ -92,10 +102,10 @@ npm run test:coverage
                     }
                 ```
 
-### 2. Retrieves the cumulative delta for the specified pair since the time we start the applciation
+### 2. Retrieves the cumulative delta for the specified pair since the time we start the application
 
 - **HTTP Method**: GET
-- **Path**: `/api/cumulative-delta-real/:pair`
+- **Path**: `/api/cumulative-delta-since-start/:pair`
     - Path Parameters:
         - pair: String - The trading pair for which the cumulative delta is calculated (only `ETH-USDT` supported for now).
 - **Response**:
@@ -116,14 +126,16 @@ npm run test:coverage
                     "error": "Trading pair {pair} is not supported"
                 }
                 ```
-        - 500 Internal Server Error
-            - General server error (e.g., issues with fetching data from the exchange).
-            - Body:
-                ```json
-                    {
-                        "error": "Error fetching data: [error details]"
-                    }
-                ```
+
+
+# Project architecture
+
+![](screenshots/architecture.png)
+
+- **to add exchanges**, just need to create corresponding classes implementing
+    - `ExchangeInterface` and add logic for getting a batch of trades and returning cumulative delta for that batch
+    - or `ExchangeWebSocketServiceInterface` for getting real time trades data and returning cumulative delta since application start up
+- **for adding new pairs**, just need to add the pair to `SUPPORTED_TRADING_PAIRS` in `src/utils/constants/constants.ts`
 
 # Remarks:
 - **Functional**:
@@ -146,7 +158,7 @@ npm run test:coverage
         - While functionally the same, different exchanges might still have slightly different format for their response. So I created a `Trade` class to standardize the trade data (e.g size, buyer or seller, etc) so that the code is not coupled with the choice of any exchange.
 - **Future Improvement**
     - If I have the chance to discuss and clarify more about the requirements, I would propose something like:
-        - Another idea is to open a websocket to https://www.kucoin.com/docs/websocket/spot-trading/public-channels/match-execution-data. Overtime, I will be able to accumulate a database of this info, and will be able to calculate the cumulative delta over the past several hours, days, weeks, etc.
+        - open a websocket to https://www.kucoin.com/docs/websocket/spot-trading/public-channels/match-execution-data. Overtime, I will be able to accumulate a database of this info, and will be able to calculate the cumulative delta over the past several hours, days, weeks, etc.
             - Pros:
                 - able to create our databases of all executed trades, allowing a richer set of features in the futures: e.g. calculate cumulative delta over a specific timeframe.
             - Cons:
@@ -154,7 +166,7 @@ npm run test:coverage
                     - calculating the delta over a specific timeframe over this huge dataset might be a challenge
                         - a time-series database like `InfluxDB` might be useful
                 - in the future we will add more exchanges and pair, listening for every trades for each of them will put a huge load on our application
-            - GET `/api/cumulative-delta-real/:pair` implement this solution. But because of the cons and uncertainty above, I did not add much tests nor structured the code around this solution.
+            - `!!! ***My endpoint at GET `/api/cumulative-delta-since-start/:pair` implements this solution. But because of the cons and uncertainty above, I did not add much tests nor structured the code around this solution.***==`
 
         - Another idea is to open a websocket to this endpoint https://www.kucoin.com/docs/websocket/spot-trading/public-channels/symbol-snapshot. That way, I can accumulate the the `buy` and `sell` quantity for a given pair every 2 seconds. Then, when the user use my API to get the cumulative delta, I am not limited to the last 100 trades for a specific pair, but instead I will be able to return the cumulative delta since the start of the our application.
             - Cons:

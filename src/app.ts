@@ -1,10 +1,15 @@
 import express from 'express'
 import { Router } from 'express';
-import { getCumulativeDelta } from './controllers/cumulativeDeltaController';
-import { KucoinWebSocketService } from './services/kucoinWebSocketService';
+import { getCumulativeDeltaLast100, getCumulativeDeltaSinceStart } from './controllers/restController';
+import { KucoinWebSocketService } from './services/sinceStart/kucoinWebSocketService';
+import { KucoinWebSocketGateway } from './gateways/kucoinWebSocketGateway';
+import { ExchangeWebSocketServiceInterface } from './services/exchangeInterfaces';
 
-const kucoinWebSocketService = new KucoinWebSocketService();
-kucoinWebSocketService.connect();
+let exchangeWebSocketServices : ExchangeWebSocketServiceInterface[] = []
+let kucoinWebSocketService = new KucoinWebSocketService
+const kucoinWebSocketGateway = new KucoinWebSocketGateway(kucoinWebSocketService);
+kucoinWebSocketGateway.connect();
+exchangeWebSocketServices.push(kucoinWebSocketService)
 
 const app = express();
 app.use(express.json());
@@ -20,11 +25,9 @@ app.listen(PORT, () => {
 
 const router = Router();
 
-router.get('/cumulative-delta/:pair', getCumulativeDelta)
+router.get('/cumulative-delta-last-100/:pair', getCumulativeDeltaLast100)
 
-router.get('/cumulative-delta-real/:pair', (req,res) => {
-    res.status(200).json({ cumulativeDelta: kucoinWebSocketService.getCumulativeDelta() });
-})
+router.get('/cumulative-delta-since-start/:pair', getCumulativeDeltaSinceStart(exchangeWebSocketServices))
 
 app.use('/api', router)
 

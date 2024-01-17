@@ -1,24 +1,7 @@
-// import { KucoinService, calculateCumulativeDelta, fetchTradeHistory } from '../../src/services/kucoinService';
+import { Trade } from "../../../src/models/trade";
+import { KucoinService } from "../../../src/services/last100/kucoinService";
 
-import { Trade } from "../../src/models/trade";
-import { KucoinService } from "../../src/services/kucoinService";
-
-describe('calculateCumulativeDelta', () => {
-    let kucoinService: KucoinService
-    beforeAll(() => {
-        kucoinService = new KucoinService();
-    })
-    it('correctly calculates the delta', () => {
-        const trades = [
-            { size: 2, side: 'buy' },
-            { size: 5, side: 'sell' },
-            { size: 7, side: 'buy' }
-        ] as unknown as Trade[];
-        expect(kucoinService.calculateCumulativeDelta(trades)).toBe(4);
-    });
-});
-
-describe('fetchTradeHistory', () => {
+describe('kucoinServiceTest', () => {
     let kucoinService: KucoinService
     beforeAll(() => {
         kucoinService = new KucoinService();
@@ -29,7 +12,16 @@ describe('fetchTradeHistory', () => {
         jest.restoreAllMocks();
     });
 
-    it('throws an error if the request times out', async () => {
+    it('should correctly calculates the delta', () => {
+        const trades = [
+            { size: 2, side: 'buy' },
+            { size: 5, side: 'sell' },
+            { size: 7, side: 'buy' }
+        ] as unknown as Trade[];
+        expect(kucoinService.calculateCumulativeDelta(trades)).toBe(4);
+    });
+
+    it('should throw an error if the request times out', async () => {
         // Simulate a delayed response
         jest.spyOn(global, 'fetch').mockImplementation(() => {
             return new Promise((resolve, reject) => {
@@ -42,7 +34,7 @@ describe('fetchTradeHistory', () => {
         await expect(kucoinService.fetchTradeHistory('ETH-USDT')).rejects.toThrow('Request timed out');
     });
 
-    it('returns a successful response', async () => {
+    it('should return a successful response', async () => {
         const jsonResponseBody = {
             code: '200000',
             data: [
@@ -86,7 +78,7 @@ describe('fetchTradeHistory', () => {
         expect(response).toEqual(expectedResponse);
     });
 
-    it('returns error if exchange return error', async () => {
+    it('should return error if exchange return error', async () => {
         const jsonResponseBody = {
             "msg": "Bad Request",
             "code": "400000"

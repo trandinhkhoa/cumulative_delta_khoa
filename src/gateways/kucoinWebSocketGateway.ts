@@ -1,15 +1,15 @@
-// src/services/kucoinWebSocketService.ts
 import { WebSocket } from 'ws';
-import { Trade } from '../models/trade';
+import { KucoinWebSocketService } from '../services/sinceStart/kucoinWebSocketService';
+import { SUPPORTED_TRADING_PAIRS } from '../utils/constants/constants';
 
 
-export class KucoinWebSocketService {
-    // private socket: WebSocket;
-    private tradeData: Trade[] = [];
+export class KucoinWebSocketGateway {
     cumulativeDelta: number = 0;
     tradeCount: number = 0;
+    kucoinService: KucoinWebSocketService
 
-    constructor() {
+    constructor(kucoinService: KucoinWebSocketService) {
+        this.kucoinService = kucoinService;
     }
 
     private subscribeToTopic(socket: WebSocket, symbol: String) {
@@ -34,7 +34,7 @@ export class KucoinWebSocketService {
 
     async connect() {
         const requestOptions = {
-            method: 'POST', // HTTP method
+            method: 'POST',
           };
         const fetchURL = `https://api.kucoin.com/api/v1/bullet-public`;
         const timeoutPromise = new Promise<Response>((_, reject) =>
@@ -50,43 +50,29 @@ export class KucoinWebSocketService {
         console.log("websocket conenction repsonse ", kucoinResponse);
         const currentUnixTime = String(Date.now());
         const websocketConnectionString = 'wss://ws-api-spot.kucoin.com/?token=' + kucoinResponse.data.token + '&connectId=' + currentUnixTime;
-        console.log("websocket to ", websocketConnectionString)
+        console.log("open websocket to ", websocketConnectionString)
         let socket = new WebSocket(websocketConnectionString);
+
         socket.on('open', () => {
-            console.log('WebSocket connection established');
+            console.log('WebSocket connection established. Now subbing to topics... ');
             this.startPing(socket, kucoinResponse.data.instanceServers[0].pingInterval, currentUnixTime)
-            this.subscribeToTopic(socket, 'ETH-USDT');
-        });
-        socket.on('message', (data) => {
-            console.log('Received message:', data.toString());
-            let dataJson = JSON.parse(data.toString());
-            // console.log("json = ", dataJson)
-            if ( ( dataJson.type == "message" ) && ( dataJson.subject == "trade.l3match" )  ){
-                if (dataJson.data.side === 'buy') {
-                    this.cumulativeDelta += parseFloat(dataJson.data.size);
-                } else if (dataJson.data.side === 'sell') {
-                    this.cumulativeDelta -= parseFloat(dataJson.data.size);
-                }
-                console.log("side = ", dataJson.data.side)
-                console.log("size = ", dataJson.data.size)
-                console.log("cumul delta = ", this.cumulativeDelta)
-                this.tradeCount += 1
-                console.log(this.tradeCount)
+            for (let tradingpair of SUPPORTED_TRADING_PAIRS) {
+                console.log("subbing to ", tradingpair)
+                this.subscribeToTopic(socket, tradingpair);
             }
         });
 
+        socket.on('message', (data) => {
+            this.kucoinService.handleMessage(data);
+        });
+
         socket.on('error', (error) => {
-            console.error('WebSocket error:', error);
+            this.kucoinService.handleError(error);
         });
 
         socket.on('close', () => {
-            console.log('WebSocket connection closed');
-            // Handle reconnection if necessary
+            this.kucoinService.handleClose();
         });
 
-    }
-
-    getCumulativeDelta() {
-        return this.cumulativeDelta
     }
 }
